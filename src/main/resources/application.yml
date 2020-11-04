@@ -1,0 +1,22 @@
+debug: true
+
+spring:
+  datasource:
+    druid:
+#      username: root
+#      password: TRoOP3o2cqYeEqfYQ
+#      url: jdbc:mysql://34.96.159.162:3306/t_surprise_journey?useUnicode=true&characterEncoding=utf8
+      username: root
+      password: kingdee
+      url: jdbc:mysql://127.0.0.1:3306/t_surprise_journey?useUnicode=true&characterEncoding=utf8
+      driver-class-name: com.mysql.cj.jdbc.Driver
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+
+server:
+  port: 8081
+
+
+
+

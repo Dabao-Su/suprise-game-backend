@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.dabao.supriseTrip.dao.ISupriseTripDao">
+	<resultMap id="publicJourneyInfo" type="com.dabao.supriseTrip.vo.Journey">
+		<id column="fid" property="id"/>
+		<result column="fisPublic" property="isPublic"/>
+		<result column="fcreatorName" property="creatorName"/>
+		<result column="fpunishmentFrequency" property="punishmentFrequency"/>
+	</resultMap>
+
+	<resultMap id="allPublicJourneyInfo" type="com.dabao.supriseTrip.vo.Journey" extends="publicJourneyInfo">
+		<collection property="scenes" column="fid" select="getScenesByJourneyId" />
+		<collection property="punishments" column="fid" select="getPunishmentByJourneyId"/>
+	</resultMap>
+
+	<resultMap id="allJourneyInfo" type="com.dabao.supriseTrip.vo.Journey" extends="publicJourneyInfo">
+		<result column="fplayerName" property="playerName"/>
+		<collection property="scenes" column="fid" select="getScenesByJourneyId" />
+		<collection property="punishments" column="fid" select="getPunishmentByJourneyId"/>
+	</resultMap>
+
+	<resultMap id="scene" type="com.dabao.supriseTrip.vo.Scene">
+		<id column="fid" property="id"/>
+		<result column="flocation" property="location"/>
+		<result column="fbehavior" property="behavior"/>
+		<result column="fproblem" property="problem"/>
+		<result column="fprize" property="prize"/>
+		<result column="fpurpose" property="purpose"/>
+		<result column="fisPublic" property="isPublic" javaType="java.lang.Boolean"/>
+		<association property="question" column="fquestionId" select="getQuestionOrClueById"/>
+		<association property="clue" column="fclueId" select="getQuestionOrClueById"/>
+	</resultMap>
+
+	<resultMap id="questionClue" type="com.dabao.supriseTrip.vo.QuestionClue">
+		<id column="fid" property="id"/>
+		<result column="ftype" property="type" />
+		<result column="fname" property="name" />
+		<result column="ftrueAnswer" property="trueAnswer"/>
+		<result column="fwrongAnswer1" property="wrongAnswer1"/>
+		<result column="fwrongAnswer2" property="wrongAnswer2"/>
+		<result column="fisPublic" property="isPublic" javaType="java.lang.Boolean"/>
+	</resultMap>
+
+	<resultMap id="punishment" type="com.dabao.supriseTrip.vo.Punishment">
+		<id property="id" column="fid"/>
+		<result property="name" column="fname"/>
+		<result property="keyword" column="fkeyword"/>
+		<result property="isCanSkip" column="fisCanSkip" javaType="java.lang.Boolean"/>
+		<result property="isPublic" column="fisPublic" javaType="java.lang.Boolean"/>
+	</resultMap>
+
+	<sql id="journeySql">
+		SELECT j.fid,j.fisPublic,j.fcreatorName,j.fplayerName,j.fpunishmentFrequency
+		FROM t_journeys j
+	</sql>
+
+	<select id="getJourneyById" parameterType="long" resultMap="allJourneyInfo">
+		<include refid="journeySql"/>
+		WHERE j.fid = #{id}
+	</select>
+
+	<select id="getJourneys" resultMap="allPublicJourneyInfo">
+		<include refid="journeySql"/>
+		<trim prefix="WHERE" prefixOverrides="AND">
+			<if test="id != null">
+				j.fid = #{id}
+			</if>
+			<if test="isPublic != null and isPublic">
+				<if test="isPublic">
+					AND j.fisPublic = 1
+				</if>
+				<if test="!isPublic">
+					AND j.fisPublic = 0
+				</if>
+			</if>
+		</trim>
+		<if test="offset != null and pageSize != null">
+			limit #{offset},#{pageSize}
+		</if>
+	</select>
+
+	<select id="getScenesByJourneyId" parameterType="long" resultMap="scene">
+		SELECT DISTINCT s.fid,s.flocation,s.fbehavior,s.fproblem,s.fpurpose,js.fprize,js.fclueId,js.fquestionId FROM t_journey_scene js
+		JOIN t_scenes s on s.fid = js.fsceneId
+		WHERE js.FJOURNEYID = #{journeyId}
+	</select>
+
+	<select id="getPunishmentByJourneyId" resultMap="punishment" parameterType="int">
+		SELECT DISTINCT p.fid, p.fname, p.fkeyword, p.fisCanSkip FROM t_journey_punishment jp
+		JOIN t_punishments p ON p.fid = jp.fpunishmentId
+		WHERE jp.FJOURNEYID = #{journeyId}
+	</select>
+
+	<select id="getAllPublicScenes" resultMap="scene">
+		select DISTINCT s.*
+		from t_scenes s where s.fisPublic = 1
+-- 		t_journey_scene js
+-- 		join t_journeys j on j.fid = js.fjourneyId and j.fisPublic = 1
+-- 		join t_scenes s on s.fid = js.fsceneId
+		ORDER BY s.fid
+		limit #{offset},#{pageSize}
+	</select>
+
+	<select id="getAllPublicPunishment" resultMap="punishment">
+		select DISTINCT p.*
+		from t_punishments p where p.fisPublic = 1
+-- 		t_journey_punishment jp
+-- 		join t_journeys j on j.fid = jp.fjourneyId and j.fisPublic = 1
+-- 		join t_punishments p on p.fid = jp.fpunishmentId
+		order by p.fid
+		limit #{offset},#{pageSize}
+	</select>
+
+	<select id="getAllPublicQuestionOrClues" resultMap="questionClue">
+		SELECT DISTINCT QS.*
+		FROM t_questions_clues QS
+		WHERE QS.fisPublic = 1
+		AND QS.FTYPE = #{type}
+		ORDER BY QS.FID
+ 		limit #{offset},#{pageSize}
+	</select>
+
+	<select id="getQuestionOrClueById" parameterType="int" resultMap="questionClue">
+		SELECT * FROM t_questions_clues WHERE FID = #{id}
+	</select>
+
+	<insert id="addJourney" parameterType="com.dabao.supriseTrip.vo.Journey" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO t_journeys ( fisPublic, fcreatorName, fplayerName, fpunishmentFrequency) VALUES ( #{isPublic}, #{creatorName}, #{playerName}, #{punishmentFrequency})
+	</insert>
+
+	<insert id="addScene" parameterType="com.dabao.supriseTrip.vo.Scene" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO t_scenes ( flocation, fbehavior, fproblem, fpurpose ) VALUES ( #{location}, #{behavior}, #{problem}, #{purpose} );
+	</insert>
+	
+	<insert id="addQuestionOrClue" parameterType="com.dabao.supriseTrip.vo.QuestionClue" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO t_questions_clues (ftype, fname, ftrueAnswer, fwrongAnswer1, fwrongAnswer2) VALUES ( #{type}, #{name}, #{trueAnswer}, #{wrongAnswer1}, #{wrongAnswer2});
+	</insert>
+
+	<insert id="addPunishment" parameterType="com.dabao.supriseTrip.vo.Punishment" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO t_punishments ( fname, fkeyword, fisCanSkip) VALUES ( #{name}, #{keyword}, #{isCanSkip});
+	</insert>
+
+	<insert id="addJourneyScene">
+			INSERT INTO t_journey_scene (fjourneyId, fsceneId, fquestionId, fclueId, fprize) VALUES ( #{journeyId}, #{sceneId}, #{questionId}, #{clueId}, #{prize});
+	</insert>
+
+	<insert id="addJourneyPunishment">
+		INSERT INTO t_journey_punishment (fjourneyId, fpunishmentId) VALUES ( #{journeyId}, #{punishmentId});
+	</insert>
+</mapper>
