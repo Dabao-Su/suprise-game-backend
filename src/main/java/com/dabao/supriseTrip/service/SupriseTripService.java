@@ -1,7 +1,10 @@
 package com.dabao.supriseTrip.service;
 
 import com.dabao.supriseTrip.dao.ISupriseTripDao;
-import com.dabao.supriseTrip.vo.*;
+import com.dabao.supriseTrip.vo.Journey;
+import com.dabao.supriseTrip.vo.Punishment;
+import com.dabao.supriseTrip.vo.Question;
+import com.dabao.supriseTrip.vo.Scene;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,13 +41,18 @@ public class SupriseTripService {
     }
 
     @Transactional
-    public List<Punishment> getAllPublicPunishment( int pageSize, int offset){
-        return supriseTripDao.getAllPublicPunishment(pageSize , offset);
+    public List<Punishment> getAllPublicPunishments( int pageSize, int offset){
+        return supriseTripDao.getAllPublicPunishments(pageSize , offset);
     }
 
     @Transactional
-    public List<QuestionClue> getAllPublicQuestionOrClues(int type, int pageSize, int offset){
-        return supriseTripDao.getAllPublicQuestionOrClues(type , pageSize, offset);
+    public List<Question> getAllPublicQuestions(int pageSize, int offset){
+        return supriseTripDao.getAllPublicQuestions(pageSize, offset);
+    }
+
+    @Transactional
+    public List<Scene> getAllSceneInfoByJourneyId(long journeyId){
+        return supriseTripDao.getAllSceneInfoByJourneyId(journeyId);
     }
 
     @Transactional
@@ -53,8 +61,8 @@ public class SupriseTripService {
     }
 
     @Transactional
-    public void addQuestionOrClue(QuestionClue questionClue){
-        supriseTripDao.addQuestionOrClue(questionClue);
+    public void addQuestion(Question question){
+        supriseTripDao.addQuestion(question);
     }
 
     @Transactional
@@ -88,7 +96,7 @@ public class SupriseTripService {
                 if(scene.getQuestion() == null){
                     throw new IllegalArgumentException("场景对应的问题不能为空");
                 }
-                supriseTripDao.addJourneyScene(journeyId, scene.getId(), scene.getQuestion().getId(), scene.getClue() != null?0L:scene.getClue().getId(), scene.getPrize());
+                supriseTripDao.addJourneyScene(journeyId, scene.getId(), scene.getQuestion().getId(), scene.getClue(), scene.getPrize());
             });
 
             punishments.forEach(punishment -> {

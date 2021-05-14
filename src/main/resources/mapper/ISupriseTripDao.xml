@@ -25,21 +25,30 @@
 		<result column="flocation" property="location"/>
 		<result column="fbehavior" property="behavior"/>
 		<result column="fproblem" property="problem"/>
-		<result column="fprize" property="prize"/>
 		<result column="fpurpose" property="purpose"/>
 		<result column="fisPublic" property="isPublic" javaType="java.lang.Boolean"/>
-		<association property="question" column="fquestionId" select="getQuestionOrClueById"/>
-		<association property="clue" column="fclueId" select="getQuestionOrClueById"/>
+		<result column="fclue" property="clue"/>
 	</resultMap>
 
-	<resultMap id="questionClue" type="com.dabao.supriseTrip.vo.QuestionClue">
+	<resultMap id="sceneWithoutPrizeAndQuestionAnswer" type="com.dabao.supriseTrip.vo.Scene" extends="scene">
+		<association property="question" column="fquestionId" select="getQuestionById"/>
+	</resultMap>
+
+	<resultMap id="sceneWithPrizeAndQuestionAnswer" type="com.dabao.supriseTrip.vo.Scene" extends="scene">
+		<result column="fprize" property="prize"/>
+		<association property="question" column="fquestionId" select="getAllQuestionInfoById"/>
+	</resultMap>
+
+	<resultMap id="question" type="com.dabao.supriseTrip.vo.Question">
 		<id column="fid" property="id"/>
-		<result column="ftype" property="type" />
 		<result column="fname" property="name" />
-		<result column="ftrueAnswer" property="trueAnswer"/>
-		<result column="fwrongAnswer1" property="wrongAnswer1"/>
-		<result column="fwrongAnswer2" property="wrongAnswer2"/>
+		<result column="ftype" property="type"/>
+		<result column="fitems" property="items" typeHandler="com.dabao.supriseTrip.mybatis.StringToJsonArrayTypeHandler"/>
 		<result column="fisPublic" property="isPublic" javaType="java.lang.Boolean"/>
+	</resultMap>
+
+	<resultMap id="questionWithAnswer" type="com.dabao.supriseTrip.vo.Question" extends="question">
+		<result column="fanswer" property="answer" typeHandler="com.dabao.supriseTrip.mybatis.StringToSetTypeHandler"/>
 	</resultMap>
 
 	<resultMap id="punishment" type="com.dabao.supriseTrip.vo.Punishment">
@@ -80,10 +89,18 @@
 		</if>
 	</select>
 
-	<select id="getScenesByJourneyId" parameterType="long" resultMap="scene">
-		SELECT DISTINCT s.fid,s.flocation,s.fbehavior,s.fproblem,s.fpurpose,js.fprize,js.fclueId,js.fquestionId FROM t_journey_scene js
+	<sql id="getScenesByJourneyIdSql">
+		SELECT DISTINCT s.fid,s.flocation,s.fbehavior,s.fproblem,s.fpurpose,js.fprize,js.fclue,js.fquestionId FROM t_journey_scene js
 		JOIN t_scenes s on s.fid = js.fsceneId
 		WHERE js.FJOURNEYID = #{journeyId}
+	</sql>
+
+	<select id="getScenesByJourneyId" parameterType="long" resultMap="sceneWithoutPrizeAndQuestionAnswer">
+		<include refid="getScenesByJourneyIdSql"></include>
+	</select>
+
+	<select id="getAllSceneInfoByJourneyId" parameterType="long" resultMap="sceneWithPrizeAndQuestionAnswer">
+		<include refid="getScenesByJourneyIdSql"></include>
 	</select>
 
 	<select id="getPunishmentByJourneyId" resultMap="punishment" parameterType="int">
@@ -102,7 +119,7 @@
 		limit #{offset},#{pageSize}
 	</select>
 
-	<select id="getAllPublicPunishment" resultMap="punishment">
+	<select id="getAllPublicPunishments" resultMap="punishment">
 		select DISTINCT p.*
 		from t_punishments p where p.fisPublic = 1
 -- 		t_journey_punishment jp
@@ -112,17 +129,24 @@
 		limit #{offset},#{pageSize}
 	</select>
 
-	<select id="getAllPublicQuestionOrClues" resultMap="questionClue">
+	<select id="getAllPublicQuestions" resultMap="question">
 		SELECT DISTINCT QS.*
-		FROM t_questions_clues QS
+		FROM t_questions QS
 		WHERE QS.fisPublic = 1
-		AND QS.FTYPE = #{type}
 		ORDER BY QS.FID
  		limit #{offset},#{pageSize}
 	</select>
 
-	<select id="getQuestionOrClueById" parameterType="int" resultMap="questionClue">
-		SELECT * FROM t_questions_clues WHERE FID = #{id}
+	<sql id="getQuestionById">
+		SELECT * FROM t_questions WHERE FID = #{id}
+	</sql>
+
+	<select id="getQuestionById" parameterType="int" resultMap="question">
+		<include refid="getQuestionById"></include>
+	</select>
+
+	<select id="getAllQuestionInfoById" parameterType="int" resultMap="questionWithAnswer">
+		<include refid="getQuestionById"></include>
 	</select>
 
 	<insert id="addJourney" parameterType="com.dabao.supriseTrip.vo.Journey" useGeneratedKeys="true" keyProperty="id">
@@ -133,8 +157,8 @@
 		INSERT INTO t_scenes ( flocation, fbehavior, fproblem, fpurpose ) VALUES ( #{location}, #{behavior}, #{problem}, #{purpose} );
 	</insert>
 	
-	<insert id="addQuestionOrClue" parameterType="com.dabao.supriseTrip.vo.QuestionClue" useGeneratedKeys="true" keyProperty="id">
-		INSERT INTO t_questions_clues (ftype, fname, ftrueAnswer, fwrongAnswer1, fwrongAnswer2) VALUES ( #{type}, #{name}, #{trueAnswer}, #{wrongAnswer1}, #{wrongAnswer2});
+	<insert id="addQuestion" parameterType="com.dabao.supriseTrip.vo.Question" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO t_questions (fname, ftrueAnswer, fwrongAnswer1, fwrongAnswer2) VALUES ( #{name}, #{trueAnswer}, #{wrongAnswer1}, #{wrongAnswer2});
 	</insert>
 
 	<insert id="addPunishment" parameterType="com.dabao.supriseTrip.vo.Punishment" useGeneratedKeys="true" keyProperty="id">
@@ -142,7 +166,7 @@
 	</insert>
 
 	<insert id="addJourneyScene">
-			INSERT INTO t_journey_scene (fjourneyId, fsceneId, fquestionId, fclueId, fprize) VALUES ( #{journeyId}, #{sceneId}, #{questionId}, #{clueId}, #{prize});
+			INSERT INTO t_journey_scene (fjourneyId, fsceneId, fquestionId, fclue, fprize) VALUES ( #{journeyId}, #{sceneId}, #{questionId}, #{clue}, #{prize});
 	</insert>
 
 	<insert id="addJourneyPunishment">

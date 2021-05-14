@@ -1,22 +1,23 @@
-debug: true
+debug: false
 
 spring:
   datasource:
     druid:
-#      username: root
-#      password: TRoOP3o2cqYeEqfYQ
-#      url: jdbc:mysql://34.96.159.162:3306/t_surprise_journey?useUnicode=true&characterEncoding=utf8
       username: root
-      password: kingdee
-      url: jdbc:mysql://127.0.0.1:3306/t_surprise_journey?useUnicode=true&characterEncoding=utf8
+      password: yao123
+      url: jdbc:mysql://34.96.170.221:3306/szzjj?useUnicode=true&characterEncoding=utf8
+#      username: root
+#      password: kingdee
+#      url: jdbc:mysql://127.0.0.1:3306/t_surprise_journey?useUnicode=true&characterEncoding=utf8
       driver-class-name: com.mysql.cj.jdbc.Driver
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
+  type-handlers-package: com.dabao.supriseTrip.mybatis
 
 server:
-  port: 8081
+  port: 8084
 
-
-
-
+logging:
+  level:
+    mapper: debug

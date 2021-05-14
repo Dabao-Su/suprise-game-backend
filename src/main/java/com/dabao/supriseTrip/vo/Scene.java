@@ -35,12 +35,12 @@ public class Scene {
     /**
      * 问题，必须要有的
      */
-    private QuestionClue question;
+    private Question question;
 
-    /**idea
+    /**
      * 线索，可以没有
      */
-    private QuestionClue clue;
+    private String clue;
 
     /**
      * 这个场景模板是否可以公开
@@ -90,19 +90,19 @@ public class Scene {
         this.problem = problem;
     }
 
-    public QuestionClue getQuestion() {
+    public Question getQuestion() {
         return question;
     }
 
-    public void setQuestion(QuestionClue question) {
+    public void setQuestion(Question question) {
         this.question = question;
     }
 
-    public QuestionClue getClue() {
+    public String getClue() {
         return clue;
     }
 
-    public void setClue(QuestionClue clue) {
+    public void setClue(String clue) {
         this.clue = clue;
     }
 

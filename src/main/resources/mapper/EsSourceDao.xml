@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.dabao.szzjj.dao.IEsSourceDao">
+
+    <resultMap id="esSource" type="com.dabao.szzjj.vo.EsSource">
+        <result property="项目名称" column="fname" />
+        <result property="合同流水号" column="fcontractNo" />
+        <result property="区属" column="fregion" />
+        <result property="意向成交价" column="fprice" />
+        <result property="面积" column="farea" />
+        <result property="用途" column="ftype" />
+        <result property="楼层" column="ffloor" />
+        <result property="房源编码" column="fhouseId" />
+        <result property="代理中介名称" column="fagentName" />
+        <result property="发布日期" column="fcretetime" />
+    </resultMap>
+
+    <resultMap id="priceNullResultMap" type="com.dabao.szzjj.vo.EsSource">
+        <result property="项目名称" column="fname" />
+        <result property="意向成交价" column="fprice" />
+    </resultMap>
+
+    <insert id="insert" parameterType="java.util.List">
+        INSERT INTO t_es_source ( fhouseId, fname, fcontractNo, fregion, farea, ftype, fagentName, fcretetime) VALUES
+        <foreach collection="list" item="esSources" index="index" separator=",">
+            (
+            #{esSources.房源编码},
+            #{esSources.项目名称},
+            #{esSources.合同流水号},
+            #{esSources.区属},
+            #{esSources.面积},
+            #{esSources.用途},
+            #{esSources.代理中介名称},
+            #{esSources.发布日期}
+            )
+        </foreach>
+    </insert>
+
+    <select id="getPriceNull" resultMap="esSource">
+        select distinct fhouseId,fname from t_es_source where fprice is null limit #{startIndex},#{pageSize}
+    </select>
+
+    <select id="countPriceNull" resultType="int">
+        select count(distinct fhouseId,fname) from t_es_source where fprice is null
+    </select>
+
+    <delete id="deleteAll">
+        delete from t_es_source
+    </delete>
+
+    <update id="updatePrice" parameterType="com.dabao.szzjj.vo.EsSource">
+        update t_es_source set fprice = #{意向成交价} where fhouseId = #{房源编码}
+    </update>
+</mapper>
