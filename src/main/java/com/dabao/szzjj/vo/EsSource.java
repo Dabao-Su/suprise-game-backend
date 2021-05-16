@@ -11,7 +11,6 @@ import java.util.Date;
  * Created by dabao on 2021-05-12.
  */
 public class EsSource {
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
     public String 项目名称;
     public String 合同流水号;
@@ -26,14 +25,6 @@ public class EsSource {
     public BigDecimal 意向成交价;
 
 
-    public void set房源编码ByElement(Element 房源编码) {
-        this.房源编码 = Long.parseLong(房源编码.html());
-    }
-
-    public void set面积ByElement(Element 面积) {
-        this.面积 = Double.parseDouble(面积.html());
-    }
-
     public void set项目名称ByElement(Element 项目名称) {
         this.项目名称 = 项目名称.getElementsByTag("a").html();
     }
@@ -42,29 +33,22 @@ public class EsSource {
         this.代理中介名称 = 代理中介名称.getElementsByTag("a").html();
     }
 
-    public void set发布日期ByElement(Element 发布日期) throws ParseException {
-        this.发布日期 = sdf.parse(发布日期.html().replaceAll("&nbsp;",""));
-    }
-
-    public void set楼层(Element 楼层) {
-        String html = 楼层.html();
-        if(!html.trim().equals("")) this.楼层 = Integer.parseInt(html);
-    }
-
-    @Override
-    public String toString() {
-        return "EsSource{" +
-                "项目名称='" + 项目名称 + '\'' +
-                ", 合同流水号='" + 合同流水号 + '\'' +
-                ", 区属='" + 区属 + '\'' +
-                ", 面积='" + 面积 + '\'' +
-                ", 用途='" + 用途 + '\'' +
-                ", 楼层='" + 楼层 + '\'' +
-                ", 房源编码='" + 房源编码 + '\'' +
-                ", 代理中介名称='" + 代理中介名称 + '\'' +
-                ", 发布日期='" + 发布日期 + '\'' +
-                '}';
-    }
+//    public void set发布日期ByElement(Element 发布日期) throws ParseException {
+//        this.发布日期 = sdf.parse(发布日期.html().replaceAll("&nbsp;",""));
+//    }
+//
+//    public void set楼层ByElement(Element 楼层) {
+//        String html = 楼层.html();
+//        if(!html.trim().equals("")) this.楼层 = Integer.parseInt(html);
+//    }
+//
+//    public void set房源编码ByElement(Element 房源编码) {
+//        this.房源编码 = Long.parseLong(房源编码.html());
+//    }
+//
+//    public void set面积ByElement(Element 面积) {
+//        this.面积 = Double.parseDouble(面积.html());
+//    }
 
     public void set项目名称(String 项目名称) {
         this.项目名称 = 项目名称;

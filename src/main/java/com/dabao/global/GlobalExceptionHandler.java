@@ -13,6 +13,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResultBody exceptionHandle(Exception e){
+        e.printStackTrace();
         return ResultBody.error(ResultEnum.INTERNAL_SERVER_ERROR, e);
     }
 }

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.dabao.szzjj.dao.IProjectInfoDao">
+
+
+    <!-- 预售信息 -->
+    <resultMap id="presaleInfo" type="com.dabao.szzjj.vo.PresellInfo">
+        <result property="id" column="fid" />
+        <result property="预售证号" column="fpresaleNo" />
+        <result property="项目名称" column="fprojectName" />
+        <result property="开发企业" column="fdeveloper" />
+        <result property="所在区" column="fregion" />
+        <result property="批准时间" column="fapprovalTime" />
+    </resultMap>
+
+    <insert id="insertPresaleInfo" parameterType="java.util.List">
+        INSERT INTO t_presale_info ( fid, fpresaleNo, fprojectName, fdeveloper, fregion, fapprovalTime) VALUES
+        <foreach collection="list" item="presaleInfo" index="index" separator=",">
+            (
+            #{presaleInfo.id},
+            #{presaleInfo.预售证号},
+            #{presaleInfo.项目名称},
+            #{presaleInfo.开发企业},
+            #{presaleInfo.所在区},
+            #{presaleInfo.批准时间}
+            )
+        </foreach>
+    </insert>
+
+    <select id="getPresaleInfo" resultMap="presaleInfo">
+        select distinct * from t_presale_info
+        limit #{startIndex},#{pageSize}
+    </select>
+
+    <select id="countPresaleInfo" resultType="int">
+        select count(distinct *) from t_presale_info
+    </select>
+    <!-- 预售信息 -->
+
+
+</mapper>
